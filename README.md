@@ -63,6 +63,7 @@ Implemented features:
 - `PROVIDER` (VARCHAR, null ok)
 - `START_DATE` (DATE, not null)
 - `END_DATE` (DATE)
+- `EXPIRATION_NOTIFIED` (bool)
 
 ## 5) Candidate Tasks
 
@@ -117,3 +118,52 @@ Acceptance criteria:
 - Have code committed to Github in your private repository. It will be shown and discussed at the technical discussion.
 
 **Good luck — and have fun!**
+
+## 7) Solutions + Testing
+
+### A) Enforce Policy end date
+*   **Solution**: Added validation to require `endDate` when creating a policy. Also made `startDate` and `endDate` mandatory with Entity class modifications.
+*   **Test (failure case)**:
+    ```bash
+    curl -X POST http://localhost:8080/api/policies \
+    -H "Content-Type: application/json" \
+    -d '{
+      "carId": 2,
+      "provider": "Generali",
+      "startDate": "2025-02-01"
+    }' -v
+    ```
+
+### B) Claim insurance & Car history
+*   **Solution**: Added endpoints to register a claim and view a car's full history.
+*   **Test**:
+    1.  Register a claim:
+        ```bash
+        curl -X POST http://localhost:8080/api/cars/1/claims \
+        -H "Content-Type: application/json" \
+        -d '{
+          "claimDate": "2024-08-15",
+          "description": "Minor scratch",
+          "amount": 450.75
+        }' -v
+        ```
+    2.  View history:
+        ```bash
+        curl http://localhost:8080/api/cars/1/history
+        ```
+
+### C) Harden insurance check endpoint
+*   **Solution**: Added validation for `carId` existence and date format.
+*   **Test (failure cases)**:
+    *   Non-existent car (404):
+        ```bash
+        curl -v "http://localhost:8080/api/cars/999/insurance-valid?date=2024-06-01"
+        ```
+    *   Invalid date format (400):
+        ```bash
+        curl -v "http://localhost:8080/api/cars/1/insurance-valid?date=not-a-real-date"
+        ```
+
+### D) Scheduled expiration logger
+*   **Solution**: A background job runs hourly to log expired policies once.
+*   **Test**: Check application logs at the top of the hour for a `WARN` message for any policy that expired yesterday.

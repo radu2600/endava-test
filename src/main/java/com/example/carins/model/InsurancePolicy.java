@@ -1,7 +1,16 @@
 package com.example.carins.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "insurancepolicy")
@@ -13,8 +22,18 @@ public class InsurancePolicy {
     private Car car;
 
     private String provider;
+
+    @NotNull
+    @Column(nullable = false)
     private LocalDate startDate;
+
+    @NotNull(message = "You cannot create an insurance policy without an end date.")
+    @Column(nullable = false)
     private LocalDate endDate; // nullable == open-ended
+
+    @Column(nullable = false)
+    private boolean expirationNotified = false;
+
 
     public InsurancePolicy() {}
     public InsurancePolicy(Car car, String provider, LocalDate startDate, LocalDate endDate) {
@@ -30,4 +49,6 @@ public class InsurancePolicy {
     public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
     public LocalDate getEndDate() { return endDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+     public boolean isExpirationNotified() { return expirationNotified; }
+    public void setExpirationNotified(boolean expirationNotified) { this.expirationNotified = expirationNotified; }
 }
